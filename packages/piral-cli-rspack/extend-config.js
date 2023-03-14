@@ -1,0 +1,140 @@
+function changePlugin(config, classRef, cb) {
+  config.plugins = config.plugins
+    .map((plugin) => {
+      if (plugin instanceof classRef) {
+        return cb(plugin);
+      }
+
+      return plugin;
+    })
+    .filter(Boolean);
+}
+
+function matchesLoader(r, loaderPath, cb, otherwise) {
+  const uses = r.use || [];
+
+  if (uses.some((m) => m && (m === loaderPath || (typeof m === 'object' && m.loader === loaderPath)))) {
+    if (typeof cb === 'function') {
+      return cb(r);
+    } else {
+      return cb;
+    }
+  } else if (typeof otherwise === 'function') {
+    return otherwise();
+  }
+
+  return r;
+}
+
+function changeRule(config, name, cb) {
+  const loaderPath = require.resolve(name);
+  config.module.rules = config.module.rules
+    .map((rule) =>
+      matchesLoader(rule, loaderPath, cb, () => {
+        if (rule.oneOf) {
+          rule.oneOf = rule.oneOf.map((r) => matchesLoader(r, loaderPath, cb)).filter(Boolean);
+        }
+
+        return rule;
+      }),
+    )
+    .filter(Boolean);
+}
+
+function changeLoader(config, name, cb) {
+  const loaderPath = require.resolve(name);
+
+  changeRule(config, name, (rule) => {
+    rule.use = rule.use.map((m) => {
+      if (m === loaderPath) {
+        return cb({ loader: m });
+      } else if (m.loader === loaderPath) {
+        return cb(m);
+      } else {
+        return m;
+      }
+    });
+
+    return rule;
+  });
+}
+
+function changeLoaderOptions(config, name, options) {
+  changeLoader(config, name, (rule) => {
+    rule.options = options;
+    return rule;
+  });
+}
+
+/**
+ * Use this function to create a function to return from your webpack
+ * configuration module. The created function can be used to conveniently
+ * override and etend the original configuration.
+ * @typedef OverrideOptions
+ * @property {any=} cssLoaderOptions The new options for the css-loader
+ * @property {any=} sassLoaderOptions The new options for the sass-loader
+ * @property {Array<{ name: string, rule: any }>=} updateRules Overrides the rules determined by its loader name with the provided rule
+ * @property {Array<string>=} removeRules Removes the rules determined by its loader name
+ * @property {Array<any>=} rules Inserts the given rules in the beginning
+ * @property {Array<{ type: any, plugin: any }>=} updatePlugins Overrides the plugins determined by its class reference (instance) with the provided plugin
+ * @property {Array<any>=} removePlugins Removes the plugins determined by its class reference (instance)
+ * @property {Array<any>=} plugins Inserts the given plugins in the end
+ * @param {OverrideOptions} override
+ * @returns {(config: webpack.Configuration) => webpack.Configuration}
+ */
+module.exports = function (override) {
+  return (config) => {
+    if (override && typeof override === 'object') {
+      if ('cssLoaderOptions' in override) {
+        changeLoaderOptions(config, 'css-loader', override.cssLoaderOptions);
+      }
+
+      if ('sassLoaderOptions' in override) {
+        changeLoaderOptions(config, 'sass-loader', override.sassLoaderOptions);
+      }
+
+      if ('updateRules' in override && Array.isArray(override.updateRules)) {
+        override.updateRules.forEach((def) => {
+          if (typeof def.name === 'string' && def.rule) {
+            changeRule(config, def.name, def.rule);
+          }
+        });
+      }
+
+      if ('removeRules' in override && Array.isArray(override.removeRules)) {
+        override.removeRules.forEach((rule) => changeRule(config, rule, () => undefined));
+      }
+
+      if ('rules' in override && Array.isArray(override.rules)) {
+        for (const rule of config.module.rules) {
+          if (Array.isArray(rule.oneOf)) {
+            rule.oneOf.unshift(...override.rules);
+            break;
+          }
+        }
+      }
+
+      if ('updatePlugins' in override && Array.isArray(override.updatePlugins)) {
+        override.updatePlugins.forEach((def) => {
+          if (def.type && def.plugin) {
+            changePlugin(config, def.type, def.plugin);
+          }
+        });
+      }
+
+      if ('removePlugins' in override && Array.isArray(override.removePlugins)) {
+        override.removePlugins.forEach((plugin) => changePlugin(config, plugin, () => undefined));
+      }
+
+      if ('plugins' in override && Array.isArray(override.plugins)) {
+        config.plugins.push(...override.plugins);
+      }
+
+      if ('change' in override && typeof override.change === 'function') {
+        config = override.change(config);
+      }
+    }
+
+    return config;
+  };
+};
