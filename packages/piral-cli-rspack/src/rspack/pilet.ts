@@ -1,10 +1,11 @@
 import type { PiletBuildHandler, PiletSchemaVersion, SharedDependency } from 'piral-cli';
 import { resolve, join } from 'path';
-import { runWebpack } from './bundler-run';
-import { getRules, getPlugins, extensions, getVariables, DefaultConfiguration } from './common';
+import { Configuration } from '@rspack/core';
+import { runRspack } from './bundler-run';
+import { getRules, getPlugins, extensions, getVariables, DefaultConfiguration, getDefineVariables } from './common';
 import { defaultRspackConfig } from '../constants';
 import { extendConfig } from '../helpers';
-import { Configuration } from '@rspack/core';
+import { piletConfigEnhancer } from '../library';
 
 async function getConfig(
   template: string,
@@ -23,8 +24,23 @@ async function getConfig(
   const name = process.env.BUILD_PCKG_NAME;
   const version = process.env.BUILD_PCKG_VERSION;
   const entry = filename.replace(/\.js$/i, '');
+  const environment = process.env.NODE_ENV || 'development';
+  const variables = getVariables();
 
-  const enhance = (options: Configuration) => [].reduceRight((acc, val) => val(acc), options);
+  const enhance = (options: Configuration) =>
+    [
+      piletConfigEnhancer({
+        name,
+        piralInstances,
+        version,
+        entry,
+        externals,
+        importmap,
+        schema,
+        filename,
+        variables,
+      }),
+    ].reduceRight((acc, val) => val(acc), options);
 
   return [
     {
@@ -47,8 +63,19 @@ async function getConfig(
         extensions,
       },
 
+      builtins: {
+        define: getDefineVariables({
+          ...getVariables(),
+          NODE_ENV: environment,
+          BUILD_TIME: new Date().toDateString(),
+          BUILD_TIME_FULL: new Date().toISOString(),
+          BUILD_PCKG_VERSION: version,
+          BUILD_PCKG_NAME: name,
+        }),
+      },
+
       module: {
-        rules: getRules(production),
+        rules: getRules(),
       },
 
       optimization: {
@@ -78,11 +105,11 @@ const handler: PiletBuildHandler = {
       options.contentHash,
       options.minify,
     );
-    const wpConfig = extendConfig(baseConfig, otherConfigPath, {
+    const rspConfig = extendConfig(baseConfig, otherConfigPath, {
       watch: options.watch,
     });
 
-    return runWebpack(wpConfig, options.logLevel);
+    return runRspack(rspConfig, options.logLevel);
   },
 };
 

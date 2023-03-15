@@ -27,9 +27,9 @@ function getPreset(logLevel: LogLevels) {
   }
 }
 
-export function runWebpack(wpConfig: Configuration, logLevel: LogLevels): BundleHandlerResponse {
+export function runRspack(rspConfig: Configuration, logLevel: LogLevels): BundleHandlerResponse {
   const eventEmitter = new EventEmitter();
-  const outDir = wpConfig.output.path;
+  const outDir = rspConfig.output.path;
   const preset = normalizeStatsPreset(getPreset(logLevel));
   const bundle = {
     outFile: '',
@@ -48,7 +48,7 @@ export function runWebpack(wpConfig: Configuration, logLevel: LogLevels): Bundle
     bundle.outDir = dirname(file);
   };
 
-  wpConfig.plugins.push({
+  rspConfig.plugins.push({
     apply(compiler: Compiler) {
       compiler.hooks.beforeRun.tap('piral-cli', () => {
         eventEmitter.emit('start');
@@ -64,7 +64,7 @@ export function runWebpack(wpConfig: Configuration, logLevel: LogLevels): Bundle
   return {
     bundle() {
       return new Promise((resolve, reject) => {
-        rspack(wpConfig, (err, stats) => {
+        rspack(rspConfig, (err, stats) => {
           if (err) {
             console.error(err);
             reject(err);

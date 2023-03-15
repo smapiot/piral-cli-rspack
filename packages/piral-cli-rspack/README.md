@@ -23,7 +23,6 @@ This plugin comes with batteries included. You don't need to install or specify 
 Right now it includes:
 
 - `sass-loader`,
-- `style-loader`,
 - `parcel-codegen-loader`,
 - `@rspack/plugin-html`,and
 - `@rspack/core`
@@ -62,8 +61,6 @@ module.exports = extendConfig({
   removeRules: [], // removes the rules mentioned by their loader name
   plugins: [], // adds additional plugins
   removePlugins: [], // removes the plugins mentioned by their class reference
-  fileLoaderOptions: {}, // sets the options for the file loader
-  cssLoaderOptions: {}, // sets the options for the CSS loader
   sassLoaderOptions: {}, // sets the options for the SASS loader
 });
 ```

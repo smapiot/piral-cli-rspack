@@ -67,11 +67,10 @@ function changeLoaderOptions(config, name, options) {
 }
 
 /**
- * Use this function to create a function to return from your webpack
+ * Use this function to create a function to return from your rspack
  * configuration module. The created function can be used to conveniently
  * override and etend the original configuration.
  * @typedef OverrideOptions
- * @property {any=} cssLoaderOptions The new options for the css-loader
  * @property {any=} sassLoaderOptions The new options for the sass-loader
  * @property {Array<{ name: string, rule: any }>=} updateRules Overrides the rules determined by its loader name with the provided rule
  * @property {Array<string>=} removeRules Removes the rules determined by its loader name
@@ -80,15 +79,11 @@ function changeLoaderOptions(config, name, options) {
  * @property {Array<any>=} removePlugins Removes the plugins determined by its class reference (instance)
  * @property {Array<any>=} plugins Inserts the given plugins in the end
  * @param {OverrideOptions} override
- * @returns {(config: webpack.Configuration) => webpack.Configuration}
+ * @returns {(config: Configuration) => Configuration}
  */
 module.exports = function (override) {
   return (config) => {
     if (override && typeof override === 'object') {
-      if ('cssLoaderOptions' in override) {
-        changeLoaderOptions(config, 'css-loader', override.cssLoaderOptions);
-      }
-
       if ('sassLoaderOptions' in override) {
         changeLoaderOptions(config, 'sass-loader', override.sassLoaderOptions);
       }

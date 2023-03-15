@@ -1,14 +1,6 @@
-import { Configuration, RuleSetRule } from "@rspack/core";
+import { Configuration, RuleSetRule } from '@rspack/core';
 
 const piletCss = 'main.css';
-
-function getStyleLoaders(production: boolean) {
-  if (production) {
-    return [];
-  } else {
-    return [require.resolve('style-loader')];
-  }
-}
 
 export type ConfigEnhancer = (config: Configuration) => Configuration;
 
@@ -16,17 +8,18 @@ export type DefaultConfiguration = [Configuration, ConfigEnhancer];
 
 export const extensions = ['.ts', '.tsx', '.js', '.jsx', '.json'];
 
+export function getDefineVariables(variables: Record<string, boolean | string>) {
+  return Object.entries(variables).reduce((obj, [name, value]) => {
+    obj[`process.env.${name}`] = JSON.stringify(value);
+    return obj;
+  }, {});
+}
+
 export function getVariables(): Record<string, string> {
-  return Object.keys(process.env).reduce(
-    (prev, curr) => {
-      prev[curr] = process.env[curr];
-      return prev;
-    },
-    {
-      DEBUG_PIRAL: '',
-      DEBUG_PILET: '',
-    },
-  );
+  return Object.keys(process.env).reduce((prev, curr) => {
+    prev[curr] = process.env[curr];
+    return prev;
+  }, {});
 }
 
 export function getPlugins(plugins: Array<any>, production: boolean, pilet?: string) {
@@ -42,19 +35,14 @@ export function getPlugins(plugins: Array<any>, production: boolean, pilet?: str
   return plugins.concat(otherPlugins);
 }
 
-export function getRules(production: boolean): Array<RuleSetRule> {
-  const styleLoaders = getStyleLoaders(production);
-
+export function getRules(): Array<RuleSetRule> {
   return [
     {
       oneOf: [
         {
           test: /\.s[ac]ss$/i,
-          use: [...styleLoaders, require.resolve('css-loader'), require.resolve('sass-loader')],
-        },
-        {
-          test: /\.css$/i,
-          use: [...styleLoaders, require.resolve('css-loader')],
+          use: [require.resolve('sass-loader')],
+          type: 'css',
         },
         {
           test: /\.codegen$/i,
@@ -64,7 +52,7 @@ export function getRules(production: boolean): Array<RuleSetRule> {
           // Exclude `js` files to keep "css" loader working as it injects
           // its runtime that would otherwise be processed through "file" loader.
           // Also exclude `html` and `json` extensions so they get processed
-          // by webpacks internal loaders.
+          // by rspacks internal loaders.
           exclude: [/^$/, /\.(js|mjs|jsx|ts|tsx)$/i, /\.html$/i, /\.json$/i],
           type: 'asset',
         },

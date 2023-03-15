@@ -1,8 +1,8 @@
 import type { PiralBuildHandler } from 'piral-cli';
 import { resolve } from 'path';
 import { Configuration } from '@rspack/core';
-import { getRules, getPlugins, extensions, getVariables, DefaultConfiguration } from './common';
-import { runWebpack } from './bundler-run';
+import { getRules, getPlugins, extensions, getVariables, DefaultConfiguration, getDefineVariables } from './common';
+import { runRspack } from './bundler-run';
 import { defaultRspackConfig } from '../constants';
 import { html5EntryConfigEnhancer } from '../html';
 import { extendConfig } from '../helpers';
@@ -31,30 +31,21 @@ async function getConfig(
 
       mode: develop ? 'development' : 'production',
 
-      entry: {
-        main: [template],
-      },
+      entry: [template],
 
       output: {
         publicPath,
         path: dist,
-        filename: `index.${contentHash ? '[hash:6].' : ''}js`,
+        filename: `index.${contentHash ? '[contenthash:6].' : ''}js`,
         chunkFilename: contentHash ? '[chunkhash:6].js' : undefined,
       },
 
       resolve: {
         extensions,
-        alias: {
-          // Webpack v4 does not respect the "exports" section of a package.json
-          // so we just (hacky) teach Webpack the special case of `piral-core`
-          // etc. by introducing the alias definitions below
-          'piral-base/_': 'piral-base/esm',
-          'piral-core/_': 'piral-core/esm',
-        },
       },
 
       builtins: {
-        define: {
+        define: getDefineVariables({
           ...getVariables(),
           NODE_ENV: environment,
           BUILD_TIME: new Date().toDateString(),
@@ -64,11 +55,11 @@ async function getConfig(
           SHARED_DEPENDENCIES: externals.join(','),
           DEBUG_PIRAL: '',
           DEBUG_PILET: '',
-        },
+        }),
       },
 
       module: {
-        rules: getRules(production),
+        rules: getRules(),
       },
 
       optimization: {
@@ -95,11 +86,11 @@ const handler: PiralBuildHandler = {
       options.minify,
       options.publicUrl,
     );
-    const wpConfig = extendConfig(baseConfig, otherConfigPath, {
+    const rspConfig = extendConfig(baseConfig, otherConfigPath, {
       watch: options.watch,
     });
 
-    return runWebpack(wpConfig, options.logLevel);
+    return runRspack(rspConfig, options.logLevel);
   },
 };
 

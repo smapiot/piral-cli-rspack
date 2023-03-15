@@ -1,6 +1,6 @@
 [![Piral Logo](https://github.com/smapiot/piral/raw/main/docs/assets/logo.png)](https://piral.io)
 
-# piral-cli-rspack &middot; [![Build Status](https://smapiot.visualstudio.com/piral-pipelines/_apis/build/status/smapiot.piral-cli-rspack?branchName=develop)](https://smapiot.visualstudio.com/piral-pipelines/_build/latest?definitionId=103&branchName=develop) ![GitHub License](https://img.shields.io/badge/license-MIT-blue.svg)
+# piral-cli-rspack &middot; [![Build Status](https://smapiot.visualstudio.com/piral-pipelines/_apis/build/status/smapiot.piral-cli-rspack?branchName=develop)](https://smapiot.visualstudio.com/piral-pipelines/_build/latest?definitionId=113&branchName=develop) ![GitHub License](https://img.shields.io/badge/license-MIT-blue.svg)
 
 The `piral-cli` plugin for using `rspack` as bundler.
 
@@ -23,9 +23,9 @@ The `piral-cli` plugin for using `rspack` as bundler.
     - [x] CSS / SASS
     - [x] Importmap references
     - [x] Importmap bundles
-    - [x] v0 format
-    - [x] v1 format
-    - [x] v2 format
+    - [ ] v0 format
+    - [ ] v1 format
+    - [ ] v2 format
     - [x] tsconfig changes
     - [x] Building
     - [x] Debugging
@@ -37,7 +37,9 @@ The `piral-cli` plugin for using `rspack` as bundler.
     - [x] Release build
     - [x] tsconfig changes
     - [x] Debugging
-    - [x] Reloading
+    - [ ] Reloading
+
+**⚠️⚠️: Right now rspack does not support the `output.library.type` option (as well as other crucial things for bundling libraries) and thus cannot be used with pilets.**
 
 ## License
 

@@ -1,5 +1,5 @@
-import { Configuration, Entry } from '@rspack/core';
 import HtmlPlugin, { Options } from '@rspack/plugin-html';
+import { Configuration, Entry } from '@rspack/core';
 import { load } from 'cheerio';
 import { readFileSync } from 'fs';
 import { dirname, join } from 'path';
@@ -83,10 +83,10 @@ export function setEntries(config: Configuration, template: string, entries: [st
   }
 }
 
-export interface Html5EntryWebpackPluginOptions extends Omit<Options, 'templateContent'> {}
+export interface Html5EntryPluginOptions extends Omit<Options, 'templateContent'> {}
 
 export const html5EntryConfigEnhancer =
-  (options: Html5EntryWebpackPluginOptions) => (compilerOptions: Configuration) => {
+  (options: Html5EntryPluginOptions) => (compilerOptions: Configuration) => {
     const entry = compilerOptions.entry;
     const [template] = getTemplates(entry);
 
