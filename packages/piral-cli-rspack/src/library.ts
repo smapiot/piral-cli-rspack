@@ -1,7 +1,7 @@
-import * as SystemJSPublicPathWebpackPlugin from 'systemjs-webpack-interop/SystemJSPublicPathWebpackPlugin';
 import { join } from 'path';
 import type { SharedDependency } from 'piral-cli';
 import { Configuration } from '@rspack/core';
+import { BannerPlugin } from './BannerPlugin';
 
 function getDependencies(importmap: Array<SharedDependency>, compilerOptions: Configuration) {
   const dependencies = {};
@@ -48,7 +48,7 @@ function withExternals(compilerOptions: Configuration, externals: Array<string>)
     return external;
   }, {});
 
-  arrayExternals.forEach(external => {
+  arrayExternals.forEach((external) => {
     if (typeof external === 'object' && Object.keys(external).length) {
       for (const dep in external) {
         objectExternal[dep] = external[dep];
@@ -83,7 +83,7 @@ export interface PiletConfigEnhancerOptions {
   /**
    * The schema version. By default, v1 is used.
    */
-  schema?: 'v0' | 'v1' | 'v2' | 'none';
+  schema?: 'v0' | 'v1' | 'v2' | 'v3' | 'none';
   /**
    * The shared dependencies. By default, these are read from the
    * Piral instance.
@@ -120,19 +120,19 @@ function piletV0WebpackConfigEnhancer(options: SchemaEnhancerOptions, compiler: 
   const { name, externals, file } = options;
   const shortName = name.replace(/\W/gi, '');
   const jsonpFunction = `pr_${shortName}`;
-  // const banner = `//@pilet v:0`;
+  const banner = `//@pilet v:0`;
 
   withSetPath(compiler);
   withExternals(compiler, externals);
 
-  // compiler.plugins.push(
-  //   new BannerPlugin({
-  //     banner,
-  //     entryOnly: true,
-  //     include: file,
-  //     raw: true,
-  //   }),
-  // );
+  compiler.plugins.push(
+    new BannerPlugin({
+      banner,
+      entryOnly: true,
+      include: file,
+      raw: true,
+    }),
+  );
   compiler.output.uniqueName = `${jsonpFunction}`;
   compiler.output.library = { name, type: 'umd' };
 
@@ -143,19 +143,19 @@ function piletV1WebpackConfigEnhancer(options: SchemaEnhancerOptions, compiler: 
   const { name, externals, file } = options;
   const shortName = name.replace(/\W/gi, '');
   const jsonpFunction = `pr_${shortName}`;
-  // const banner = `//@pilet v:1(${jsonpFunction})`;
+  const banner = `//@pilet v:1(${jsonpFunction})`;
 
   withSetPath(compiler);
   withExternals(compiler, externals);
 
-  // compiler.plugins.push(
-  //   new BannerPlugin({
-  //     banner,
-  //     entryOnly: true,
-  //     include: file,
-  //     raw: true,
-  //   }),
-  // );
+  compiler.plugins.push(
+    new BannerPlugin({
+      banner,
+      entryOnly: true,
+      include: file,
+      raw: true,
+    }),
+  );
   compiler.output.uniqueName = `${jsonpFunction}`;
   compiler.output.library = { name, type: 'umd' };
   compiler.output.auxiliaryComment = {
@@ -173,22 +173,23 @@ function piletV2WebpackConfigEnhancer(options: SchemaEnhancerOptions, compiler: 
 
   withExternals(compiler, externals);
 
-  // const dependencies = getDependencies(importmap, compiler);
-  // const banner = `//@pilet v:2(webpackChunk${jsonpFunction},${JSON.stringify(dependencies)})`;
+  const dependencies = getDependencies(importmap, compiler);
+  const banner = `//@pilet v:2(webpackChunk${jsonpFunction},${JSON.stringify(dependencies)})`;
 
   plugins.push(
-    // new BannerPlugin({
-    //   banner,
-    //   entryOnly: true,
-    //   include: file,
-    //   raw: true,
-    // }),
-    new SystemJSPublicPathWebpackPlugin(),
+    new BannerPlugin({
+      banner,
+      entryOnly: true,
+      include: file,
+      raw: true,
+    }),
   );
 
   compiler.plugins = [...compiler.plugins, ...plugins];
   compiler.output.uniqueName = `${jsonpFunction}`;
-  compiler.output.library = { type: 'system' };
+  compiler.output.library = { type: 'amd' };
+
+  //TODO transform AMD to SystemJS
 
   return compiler;
 }
@@ -209,6 +210,7 @@ export const piletConfigEnhancer = (details: PiletConfigEnhancerOptions) => (com
     case 'v1':
       return piletV1WebpackConfigEnhancer(options, compiler);
     case 'v2':
+    case 'v3':
       return piletV2WebpackConfigEnhancer(options, compiler);
     case 'none':
     default:

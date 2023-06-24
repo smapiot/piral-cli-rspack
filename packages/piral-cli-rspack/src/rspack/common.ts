@@ -1,4 +1,5 @@
 import { Configuration, RuleSetRule } from '@rspack/core';
+import SheetPlugin from '../plugin/SheetPlugin';
 
 const piletCss = 'main.css';
 
@@ -27,8 +28,8 @@ export function getPlugins(plugins: Array<any>, production: boolean, pilet?: str
 
   if (production) {
     if (pilet) {
-      // const name = process.env.BUILD_PCKG_NAME;
-      // otherPlugins.push(new SheetPlugin(piletCss, name, pilet));
+      const name = process.env.BUILD_PCKG_NAME;
+      otherPlugins.push(new SheetPlugin(piletCss, name, pilet));
     }
   }
 
@@ -41,6 +42,11 @@ export function getRules(): Array<RuleSetRule> {
       oneOf: [
         {
           test: /\.s[ac]ss$/i,
+          use: [require.resolve('sass-loader')],
+          type: 'css',
+        },
+        {
+          test: /\.css$/i,
           use: [require.resolve('sass-loader')],
           type: 'css',
         },

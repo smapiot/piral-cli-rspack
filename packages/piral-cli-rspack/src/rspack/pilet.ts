@@ -56,7 +56,7 @@ async function getConfig(
         publicPath: './',
         path: dist,
         filename: '[name].js',
-        chunkFilename: contentHash ? '[chunkhash:8].js' : undefined,
+        chunkFilename: contentHash ? '[contenthash].js' : undefined,
       },
 
       resolve: {
@@ -80,6 +80,7 @@ async function getConfig(
 
       optimization: {
         minimize,
+
       },
 
       plugins: getPlugins([], production, entry),

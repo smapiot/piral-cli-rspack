@@ -6,7 +6,7 @@ import type { LogLevels, BundleHandlerResponse } from 'piral-cli';
 function getOutput(outDir: string, stats: Stats) {
   const { assetsByChunkName, entrypoints } = stats.toJson();
   const [main] = Object.keys(entrypoints);
-  const [entry] = assetsByChunkName[main];
+  const entry = assetsByChunkName[main].find(m => m.endsWith('.js'));
   return resolve(outDir, entry);
 }
 
