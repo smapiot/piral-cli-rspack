@@ -1,7 +1,6 @@
 import { join } from 'path';
 import type { SharedDependency } from 'piral-cli';
-import { Configuration } from '@rspack/core';
-import { BannerPlugin } from './BannerPlugin';
+import { Configuration, BannerPlugin } from '@rspack/core';
 
 function getDependencies(importmap: Array<SharedDependency>, compilerOptions: Configuration) {
   const dependencies = {};

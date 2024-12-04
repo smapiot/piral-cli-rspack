@@ -1,4 +1,4 @@
-import { Compiler, Configuration, rspack, Stats, normalizeStatsPreset } from '@rspack/core';
+import { Compiler, Configuration, rspack, Stats } from '@rspack/core';
 import { resolve, basename, dirname } from 'path';
 import { EventEmitter } from 'events';
 import type { LogLevels, BundleHandlerResponse } from 'piral-cli';
@@ -30,7 +30,7 @@ function getPreset(logLevel: LogLevels) {
 export function runRspack(rspConfig: Configuration, logLevel: LogLevels): BundleHandlerResponse {
   const eventEmitter = new EventEmitter();
   const outDir = rspConfig.output.path;
-  const preset = normalizeStatsPreset(getPreset(logLevel));
+  const preset = getPreset(logLevel);
   const bundle = {
     outFile: '',
     outDir,

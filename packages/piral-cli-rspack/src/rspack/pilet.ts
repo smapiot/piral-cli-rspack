@@ -1,6 +1,6 @@
 import type { PiletBuildHandler, PiletSchemaVersion, SharedDependency } from 'piral-cli';
 import { resolve, join } from 'path';
-import { Configuration } from '@rspack/core';
+import { Configuration, DefinePlugin } from '@rspack/core';
 import { runRspack } from './bundler-run';
 import { getRules, getPlugins, extensions, getVariables, DefaultConfiguration, getDefineVariables } from './common';
 import { defaultRspackConfig } from '../constants';
@@ -63,27 +63,30 @@ async function getConfig(
         extensions,
       },
 
-      builtins: {
-        define: getDefineVariables({
-          ...getVariables(),
-          NODE_ENV: environment,
-          BUILD_TIME: new Date().toDateString(),
-          BUILD_TIME_FULL: new Date().toISOString(),
-          BUILD_PCKG_VERSION: version,
-          BUILD_PCKG_NAME: name,
-        }),
-      },
-
       module: {
         rules: getRules(),
       },
 
       optimization: {
         minimize,
-
       },
 
-      plugins: getPlugins([], production, entry),
+      plugins: getPlugins(
+        [
+          new DefinePlugin(
+            getDefineVariables({
+              ...getVariables(),
+              NODE_ENV: environment,
+              BUILD_TIME: new Date().toDateString(),
+              BUILD_TIME_FULL: new Date().toISOString(),
+              BUILD_PCKG_VERSION: version,
+              BUILD_PCKG_NAME: name,
+            }),
+          ),
+        ],
+        production,
+        entry,
+      ),
     },
     enhance,
   ];
