@@ -1,6 +1,6 @@
 import { join } from 'path';
-import type { SharedDependency } from 'piral-cli';
 import { Configuration, BannerPlugin } from '@rspack/core';
+import type { PiletSchemaVersion, SharedDependency } from 'piral-cli';
 
 function getDependencies(importmap: Array<SharedDependency>, compilerOptions: Configuration) {
   const dependencies = {};
@@ -82,7 +82,7 @@ export interface PiletConfigEnhancerOptions {
   /**
    * The schema version. By default, v1 is used.
    */
-  schema?: 'v0' | 'v1' | 'v2' | 'v3' | 'none';
+  schema?: PiletSchemaVersion;
   /**
    * The shared dependencies. By default, these are read from the
    * Piral instance.
