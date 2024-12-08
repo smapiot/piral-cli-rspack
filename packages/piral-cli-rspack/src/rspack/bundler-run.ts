@@ -50,11 +50,11 @@ export function runRspack(rspConfig: Configuration, logLevel: LogLevels): Bundle
 
   rspConfig.plugins.push({
     apply(compiler: Compiler) {
-      compiler.hooks.beforeRun.tap('piral-cli', () => {
+      compiler.hooks.beforeCompile.tap('piral-cli', () => {
         eventEmitter.emit('start');
       });
 
-      compiler.hooks.done.tap('piral-cli', (stats) => {
+      compiler.hooks.afterDone.tap('piral-cli', (stats) => {
         updateBundle(stats);
         eventEmitter.emit('end', bundle);
       });

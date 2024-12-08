@@ -1,10 +1,12 @@
 import type { PiralBuildHandler } from 'piral-cli';
+import { getFreePort } from 'piral-cli/utils';
 import { resolve } from 'path';
 import { Configuration, DefinePlugin } from '@rspack/core';
 import { getRules, getPlugins, extensions, getVariables, DefaultConfiguration, getDefineVariables } from './common';
 import { runRspack } from './bundler-run';
 import { defaultRspackConfig } from '../constants';
 import { html5EntryConfigEnhancer } from '../html';
+import { hmrConfigEnhancer } from '../hmr';
 import { extendConfig } from '../helpers';
 
 async function getConfig(
@@ -16,6 +18,7 @@ async function getConfig(
   contentHash = true,
   minimize = true,
   publicPath = '/',
+  hmr = 0,
 ): Promise<DefaultConfiguration> {
   const name = process.env.BUILD_PCKG_NAME;
   const version = process.env.BUILD_PCKG_VERSION;
@@ -23,7 +26,7 @@ async function getConfig(
   const production = !develop;
 
   const enhance = (options: Configuration) =>
-    [html5EntryConfigEnhancer({})].reduceRight((acc, val) => val(acc), options);
+    [hmrConfigEnhancer({ port: hmr }), html5EntryConfigEnhancer()].reduceRight((acc, val) => val(acc), options);
 
   return [
     {
@@ -52,6 +55,10 @@ async function getConfig(
         minimize,
       },
 
+      experiments: {
+        css: true,
+      },
+
       plugins: getPlugins(
         [
           new DefinePlugin(
@@ -76,9 +83,17 @@ async function getConfig(
   ];
 }
 
+function getRandomPort() {
+  const min = 60000;
+  const max = 65536;
+  const rng = max - min;
+  return ~~(Math.random() * rng) + min;
+}
+
 const handler: PiralBuildHandler = {
   async create(options) {
-    const { config = defaultRspackConfig } = options.args._;
+    const { 'hmr-port': defaultHmrPort = getRandomPort(), config = defaultRspackConfig } = options.args._;
+    const hmrPort = options.hmr ? await getFreePort(defaultHmrPort) : 0;
     const otherConfigPath = resolve(options.root, config);
     const baseConfig = await getConfig(
       options.entryFiles,
@@ -89,6 +104,7 @@ const handler: PiralBuildHandler = {
       options.contentHash,
       options.minify,
       options.publicUrl,
+      hmrPort,
     );
     const rspConfig = extendConfig(baseConfig, otherConfigPath, {
       watch: options.watch,

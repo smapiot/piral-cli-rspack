@@ -71,6 +71,10 @@ async function getConfig(
         minimize,
       },
 
+      experiments: {
+        css: true,
+      },
+
       plugins: getPlugins(
         [
           new DefinePlugin(

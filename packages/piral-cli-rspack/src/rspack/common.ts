@@ -41,14 +41,74 @@ export function getRules(): Array<RuleSetRule> {
     {
       oneOf: [
         {
+          test: /\.js$/,
+          exclude: [/node_modules/],
+          loader: 'builtin:swc-loader',
+          options: {
+            jsc: {
+              parser: {
+                syntax: 'ecmascript',
+              },
+            },
+          },
+          type: 'javascript/auto',
+        },
+        {
+          test: /\.ts$/,
+          exclude: [/node_modules/],
+          loader: 'builtin:swc-loader',
+          options: {
+            jsc: {
+              parser: {
+                syntax: 'typescript',
+              },
+            },
+          },
+          type: 'javascript/auto',
+        },
+        {
+          test: /\.jsx$/,
+          use: {
+            loader: 'builtin:swc-loader',
+            options: {
+              jsc: {
+                parser: {
+                  syntax: 'ecmascript',
+                  jsx: true,
+                },
+              },
+            },
+          },
+          type: 'javascript/auto',
+        },
+        {
+          test: /\.tsx$/,
+          use: {
+            loader: 'builtin:swc-loader',
+            options: {
+              jsc: {
+                parser: {
+                  syntax: 'typescript',
+                  jsx: true,
+                },
+              },
+            },
+          },
+          type: 'javascript/auto',
+        },
+        {
           test: /\.s[ac]ss$/i,
           use: [require.resolve('sass-loader')],
-          type: 'css',
+          type: 'css/auto', // 👈
         },
         {
           test: /\.css$/i,
-          use: [require.resolve('sass-loader')],
-          type: 'css',
+          use: [
+            {
+              loader: 'builtin:lightningcss-loader',
+            },
+          ],
+          type: 'css/auto', // 👈
         },
         {
           test: /\.codegen$/i,
