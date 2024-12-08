@@ -1,6 +1,11 @@
 import type { PiletBuildHandler, PiletSchemaVersion, SharedDependency } from 'piral-cli';
 import { resolve, join } from 'path';
-import { Configuration, DefinePlugin } from '@rspack/core';
+import {
+  Configuration,
+  DefinePlugin,
+  LightningCssMinimizerRspackPlugin,
+  SwcJsMinimizerRspackPlugin,
+} from '@rspack/core';
 import { runRspack } from './bundler-run';
 import { getRules, getPlugins, extensions, getVariables, DefaultConfiguration, getDefineVariables } from './common';
 import { defaultRspackConfig } from '../constants';
@@ -20,7 +25,6 @@ async function getConfig(
   contentHash = true,
   minimize = true,
 ): Promise<DefaultConfiguration> {
-  const production = !develop;
   const name = process.env.BUILD_PCKG_NAME;
   const version = process.env.BUILD_PCKG_VERSION;
   const entry = filename.replace(/\.js$/i, '');
@@ -53,7 +57,7 @@ async function getConfig(
       },
 
       output: {
-        publicPath: './',
+        publicPath: undefined,
         path: dist,
         filename: '[name].js',
         chunkFilename: contentHash ? '[contenthash].js' : undefined,
@@ -69,10 +73,20 @@ async function getConfig(
 
       optimization: {
         minimize,
-      },
-
-      experiments: {
-        css: true,
+        minimizer: [
+          new SwcJsMinimizerRspackPlugin({
+            extractComments: false,
+            minimizerOptions: {
+              format: {
+                comments: 'some',
+              },
+              mangle: {
+                reserved: ['__bundleUrl__'],
+              },
+            },
+          }),
+          new LightningCssMinimizerRspackPlugin(),
+        ],
       },
 
       plugins: getPlugins(
@@ -88,7 +102,6 @@ async function getConfig(
             }),
           ),
         ],
-        production,
         entry,
       ),
     },

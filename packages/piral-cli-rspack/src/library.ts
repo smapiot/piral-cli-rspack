@@ -1,6 +1,9 @@
 import { join } from 'path';
-import { Configuration, BannerPlugin } from '@rspack/core';
+import { Configuration, BannerPlugin, container } from '@rspack/core';
 import type { PiletSchemaVersion, SharedDependency } from 'piral-cli';
+import StylesPlugin from './plugin/StylesPlugin';
+import SheetPlugin from './plugin/SheetPlugin';
+import { getShared } from './helpers';
 
 function getDependencies(importmap: Array<SharedDependency>, compilerOptions: Configuration) {
   const dependencies = {};
@@ -106,6 +109,8 @@ interface SchemaEnhancerOptions {
   importmap: Array<SharedDependency>;
 }
 
+const piletCss = 'main.css';
+
 function piletVxWebpackConfigEnhancer(options: SchemaEnhancerOptions, compiler: Configuration) {
   const { externals } = options;
 
@@ -116,7 +121,7 @@ function piletVxWebpackConfigEnhancer(options: SchemaEnhancerOptions, compiler: 
 }
 
 function piletV0WebpackConfigEnhancer(options: SchemaEnhancerOptions, compiler: Configuration) {
-  const { name, externals, file } = options;
+  const { name, externals, file, entry } = options;
   const shortName = name.replace(/\W/gi, '');
   const jsonpFunction = `pr_${shortName}`;
   const banner = `//@pilet v:0`;
@@ -125,11 +130,13 @@ function piletV0WebpackConfigEnhancer(options: SchemaEnhancerOptions, compiler: 
   withExternals(compiler, externals);
 
   compiler.plugins.push(
+    new SheetPlugin(piletCss, name, entry),
     new BannerPlugin({
       banner,
       entryOnly: true,
       include: file,
       raw: true,
+      stage: 1000,
     }),
   );
   compiler.output.uniqueName = `${jsonpFunction}`;
@@ -139,7 +146,7 @@ function piletV0WebpackConfigEnhancer(options: SchemaEnhancerOptions, compiler: 
 }
 
 function piletV1WebpackConfigEnhancer(options: SchemaEnhancerOptions, compiler: Configuration) {
-  const { name, externals, file } = options;
+  const { name, externals, file, entry } = options;
   const shortName = name.replace(/\W/gi, '');
   const jsonpFunction = `pr_${shortName}`;
   const banner = `//@pilet v:1(${jsonpFunction})`;
@@ -148,11 +155,13 @@ function piletV1WebpackConfigEnhancer(options: SchemaEnhancerOptions, compiler: 
   withExternals(compiler, externals);
 
   compiler.plugins.push(
+    new SheetPlugin(piletCss, name, entry),
     new BannerPlugin({
       banner,
       entryOnly: true,
       include: file,
       raw: true,
+      stage: 1000,
     }),
   );
   compiler.output.uniqueName = `${jsonpFunction}`;
@@ -165,7 +174,7 @@ function piletV1WebpackConfigEnhancer(options: SchemaEnhancerOptions, compiler: 
 }
 
 function piletV2WebpackConfigEnhancer(options: SchemaEnhancerOptions, compiler: Configuration) {
-  const { name, externals, file, importmap } = options;
+  const { name, externals, file, importmap, entry } = options;
   const shortName = name.replace(/\W/gi, '');
   const jsonpFunction = `pr_${shortName}`;
   const plugins = [];
@@ -176,19 +185,73 @@ function piletV2WebpackConfigEnhancer(options: SchemaEnhancerOptions, compiler: 
   const banner = `//@pilet v:2(webpackChunk${jsonpFunction},${JSON.stringify(dependencies)})`;
 
   plugins.push(
+    new SheetPlugin(piletCss, name, entry),
     new BannerPlugin({
       banner,
       entryOnly: true,
       include: file,
       raw: true,
+      stage: 1000,
     }),
   );
 
   compiler.plugins = [...compiler.plugins, ...plugins];
   compiler.output.uniqueName = `${jsonpFunction}`;
-  compiler.output.library = { type: 'amd' };
+  compiler.output.library = { type: 'system' };
 
-  //TODO transform AMD to SystemJS
+  return compiler;
+}
+
+function piletV3WebpackConfigEnhancer(options: SchemaEnhancerOptions, compiler: Configuration) {
+  const { name, externals, file, importmap, entry } = options;
+  const shortName = name.replace(/\W/gi, '');
+  const jsonpFunction = `pr_${shortName}`;
+  const plugins = [];
+
+  withExternals(compiler, externals);
+
+  const dependencies = getDependencies(importmap, compiler);
+  const banner = `//@pilet v:3(webpackChunk${jsonpFunction},${JSON.stringify(dependencies)})`;
+
+  plugins.push(
+    new StylesPlugin(piletCss, entry),
+    new BannerPlugin({
+      banner,
+      entryOnly: true,
+      include: file,
+      raw: true,
+      stage: 1000,
+    }),
+  );
+
+  compiler.output.publicPath = '';
+  compiler.output.chunkFormat = 'module';
+  compiler.plugins = [...compiler.plugins, ...plugins];
+  compiler.output.uniqueName = `${jsonpFunction}`;
+  compiler.output.library = { type: 'system' };
+  compiler.target = 'node';
+
+  return compiler;
+}
+
+function piletMfWebpackConfigEnhancer(options: SchemaEnhancerOptions, compiler: Configuration) {
+  const { name, externals, file, importmap, entry } = options;
+  const { ModuleFederationPlugin } = container;
+
+  const plugins = [
+    new ModuleFederationPlugin({
+      filename: file,
+      name: name.replace(/^@/, '').replace('/', '-').replace(/\-/g, '_'),
+      exposes: {
+        './pilet': compiler.entry[entry],
+      },
+      shared: getShared(importmap, externals),
+    }),
+  ];
+
+  compiler.entry = {};
+  compiler.output.publicPath = 'auto';
+  compiler.plugins = [...compiler.plugins, ...plugins];
 
   return compiler;
 }
@@ -209,8 +272,11 @@ export const piletConfigEnhancer = (details: PiletConfigEnhancerOptions) => (com
     case 'v1':
       return piletV1WebpackConfigEnhancer(options, compiler);
     case 'v2':
-    case 'v3':
       return piletV2WebpackConfigEnhancer(options, compiler);
+    case 'v3':
+      return piletV3WebpackConfigEnhancer(options, compiler);
+    case 'mf':
+      return piletMfWebpackConfigEnhancer(options, compiler);
     case 'none':
     default:
       return piletVxWebpackConfigEnhancer(options, compiler);

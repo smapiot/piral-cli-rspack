@@ -1,5 +1,4 @@
-import { Configuration, RuleSetRule } from '@rspack/core';
-import SheetPlugin from '../plugin/SheetPlugin';
+import { Configuration, RuleSetRule, CssExtractRspackPlugin, Plugin } from '@rspack/core';
 
 const piletCss = 'main.css';
 
@@ -23,15 +22,13 @@ export function getVariables(): Record<string, string> {
   }, {});
 }
 
-export function getPlugins(plugins: Array<any>, production: boolean, pilet?: string) {
-  const otherPlugins = [];
-
-  if (production) {
-    if (pilet) {
-      const name = process.env.BUILD_PCKG_NAME;
-      otherPlugins.push(new SheetPlugin(piletCss, name, pilet));
-    }
-  }
+export function getPlugins(plugins: Array<Plugin>, pilet?: string) {
+  const otherPlugins: Array<Plugin> = [
+    new CssExtractRspackPlugin({
+      filename: pilet ? piletCss : '[name].[fullhash:6].css',
+      chunkFilename: '[id].[chunkhash:6].css',
+    }),
+  ];
 
   return plugins.concat(otherPlugins);
 }
@@ -98,17 +95,18 @@ export function getRules(): Array<RuleSetRule> {
         },
         {
           test: /\.s[ac]ss$/i,
-          use: [require.resolve('sass-loader')],
-          type: 'css/auto', // 👈
+          use: [CssExtractRspackPlugin.loader, require.resolve('sass-loader')],
+          type: 'javascript/auto',
         },
         {
           test: /\.css$/i,
           use: [
+            CssExtractRspackPlugin.loader,
             {
               loader: 'builtin:lightningcss-loader',
             },
           ],
-          type: 'css/auto', // 👈
+          type: 'javascript/auto',
         },
         {
           test: /\.codegen$/i,
@@ -120,7 +118,7 @@ export function getRules(): Array<RuleSetRule> {
           // Also exclude `html` and `json` extensions so they get processed
           // by rspacks internal loaders.
           exclude: [/^$/, /\.(js|mjs|jsx|ts|tsx)$/i, /\.html$/i, /\.json$/i],
-          type: 'asset',
+          type: 'asset/resource',
         },
         // Don't add new loaders here -> should be added before the last (catch-all) handler
       ],

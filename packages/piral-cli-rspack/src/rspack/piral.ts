@@ -23,7 +23,6 @@ async function getConfig(
   const name = process.env.BUILD_PCKG_NAME;
   const version = process.env.BUILD_PCKG_VERSION;
   const environment = process.env.NODE_ENV || 'development';
-  const production = !develop;
 
   const enhance = (options: Configuration) =>
     [hmrConfigEnhancer({ port: hmr }), html5EntryConfigEnhancer()].reduceRight((acc, val) => val(acc), options);
@@ -55,29 +54,21 @@ async function getConfig(
         minimize,
       },
 
-      experiments: {
-        css: true,
-      },
-
-      plugins: getPlugins(
-        [
-          new DefinePlugin(
-            getDefineVariables({
-              ...getVariables(),
-              NODE_ENV: environment,
-              BUILD_TIME: new Date().toDateString(),
-              BUILD_TIME_FULL: new Date().toISOString(),
-              BUILD_PCKG_VERSION: version,
-              BUILD_PCKG_NAME: name,
-              SHARED_DEPENDENCIES: externals.join(','),
-              DEBUG_PIRAL: '',
-              DEBUG_PILET: '',
-            }),
-          ),
-        ],
-        production,
-        undefined,
-      ),
+      plugins: getPlugins([
+        new DefinePlugin(
+          getDefineVariables({
+            ...getVariables(),
+            NODE_ENV: environment,
+            BUILD_TIME: new Date().toDateString(),
+            BUILD_TIME_FULL: new Date().toISOString(),
+            BUILD_PCKG_VERSION: version,
+            BUILD_PCKG_NAME: name,
+            SHARED_DEPENDENCIES: externals.join(','),
+            DEBUG_PIRAL: '',
+            DEBUG_PILET: '',
+          }),
+        ),
+      ]),
     },
     enhance,
   ];
