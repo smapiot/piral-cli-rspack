@@ -23,9 +23,9 @@ The `piral-cli` plugin for using `rspack` as bundler.
     - [x] CSS / SASS
     - [x] Importmap references
     - [x] Importmap bundles
-    - [ ] v0 format
-    - [ ] v1 format
-    - [ ] v2 format
+    - [x] v0 format
+    - [x] v1 format
+    - [x] v2 format
     - [x] tsconfig changes
     - [x] Building
     - [x] Debugging
@@ -38,8 +38,6 @@ The `piral-cli` plugin for using `rspack` as bundler.
     - [x] tsconfig changes
     - [x] Debugging
     - [ ] Reloading
-
-**⚠️⚠️: Right now rspack does not support the `output.library.type` option (as well as other crucial things for bundling libraries) and thus cannot be used with pilets.**
 
 ## License
 
