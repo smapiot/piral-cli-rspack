@@ -1,5 +1,5 @@
 import { posix, resolve } from 'path';
-import { Compilation } from 'webpack';
+import { Compilation } from '@rspack/core';
 import { RawSource } from 'webpack-sources';
 
 export default class StylesPlugin {
