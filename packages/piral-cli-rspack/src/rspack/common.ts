@@ -100,12 +100,7 @@ export function getRules(): Array<RuleSetRule> {
         },
         {
           test: /\.css$/i,
-          use: [
-            CssExtractRspackPlugin.loader,
-            {
-              loader: 'builtin:lightningcss-loader',
-            },
-          ],
+          use: [CssExtractRspackPlugin.loader, require.resolve('css-loader')],
           type: 'javascript/auto',
         },
         {

@@ -50,11 +50,13 @@
     "@rspack/core": "^1.1.5",
     "ansi-html-community": "0.0.8",
     "cheerio": "^1.0.0",
+    "css-loader": "^7.1.2",
     "express": "^4.20.0",
     "html-entities": "^1.2.0",
     "parcel-codegen-loader": "^1.0.1",
     "sass": "^1.82.0",
     "sass-loader": "^16.0.3",
+    "systemjs-webpack-interop": "^2.3.7",
     "webpack-sources": "^3.2.3"
   }
 }

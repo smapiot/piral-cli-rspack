@@ -1,3 +1,4 @@
+import * as SystemJSPublicPathWebpackPlugin from 'systemjs-webpack-interop/SystemJSPublicPathWebpackPlugin';
 import { join } from 'path';
 import { Configuration, BannerPlugin, container } from '@rspack/core';
 import type { PiletSchemaVersion, SharedDependency } from 'piral-cli';
@@ -193,6 +194,7 @@ function piletV2WebpackConfigEnhancer(options: SchemaEnhancerOptions, compiler: 
       raw: true,
       stage: 1000,
     }),
+    new SystemJSPublicPathWebpackPlugin(),
   );
 
   compiler.plugins = [...compiler.plugins, ...plugins];
