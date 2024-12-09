@@ -110,7 +110,7 @@ interface SchemaEnhancerOptions {
   importmap: Array<SharedDependency>;
 }
 
-const piletCss = 'main.css';
+export const piletCss = 'main.css';
 
 function piletVxWebpackConfigEnhancer(options: SchemaEnhancerOptions, compiler: Configuration) {
   const { externals } = options;

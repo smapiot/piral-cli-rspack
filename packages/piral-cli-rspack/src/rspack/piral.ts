@@ -2,7 +2,7 @@ import type { PiralBuildHandler } from 'piral-cli';
 import { getFreePort } from 'piral-cli/utils';
 import { resolve } from 'path';
 import { Configuration, DefinePlugin } from '@rspack/core';
-import { getRules, getPlugins, extensions, getVariables, DefaultConfiguration, getDefineVariables } from './common';
+import { getRules, extensions, getVariables, DefaultConfiguration, getDefineVariables } from './common';
 import { runRspack } from './bundler-run';
 import { defaultRspackConfig } from '../constants';
 import { html5EntryConfigEnhancer } from '../html';
@@ -47,14 +47,29 @@ async function getConfig(
       },
 
       module: {
-        rules: getRules(),
+        rules: getRules([
+          {
+            test: /\.s[ac]ss$/i,
+            use: [require.resolve('sass-loader')],
+            type: 'css/auto',
+          },
+          {
+            test: /\.css$/i,
+            use: [],
+            type: 'css/auto',
+          },
+        ]),
       },
 
       optimization: {
         minimize,
       },
 
-      plugins: getPlugins([
+      experiments: {
+        css: true,
+      },
+
+      plugins: [
         new DefinePlugin(
           getDefineVariables({
             ...getVariables(),
@@ -68,7 +83,7 @@ async function getConfig(
             DEBUG_PILET: '',
           }),
         ),
-      ]),
+      ],
     },
     enhance,
   ];

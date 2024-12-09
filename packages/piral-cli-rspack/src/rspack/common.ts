@@ -1,6 +1,4 @@
-import { Configuration, RuleSetRule, CssExtractRspackPlugin, Plugin } from '@rspack/core';
-
-const piletCss = 'main.css';
+import { Configuration, RuleSetRule } from '@rspack/core';
 
 export type ConfigEnhancer = (config: Configuration) => Configuration;
 
@@ -22,18 +20,7 @@ export function getVariables(): Record<string, string> {
   }, {});
 }
 
-export function getPlugins(plugins: Array<Plugin>, pilet?: string) {
-  const otherPlugins: Array<Plugin> = [
-    new CssExtractRspackPlugin({
-      filename: pilet ? piletCss : '[name].[fullhash:6].css',
-      chunkFilename: '[id].[chunkhash:6].css',
-    }),
-  ];
-
-  return plugins.concat(otherPlugins);
-}
-
-export function getRules(): Array<RuleSetRule> {
+export function getRules(rules: Array<RuleSetRule>): Array<RuleSetRule> {
   return [
     {
       oneOf: [
@@ -93,16 +80,7 @@ export function getRules(): Array<RuleSetRule> {
           },
           type: 'javascript/auto',
         },
-        {
-          test: /\.s[ac]ss$/i,
-          use: [CssExtractRspackPlugin.loader, require.resolve('sass-loader')],
-          type: 'javascript/auto',
-        },
-        {
-          test: /\.css$/i,
-          use: [CssExtractRspackPlugin.loader, require.resolve('css-loader')],
-          type: 'javascript/auto',
-        },
+        ...rules,
         {
           test: /\.codegen$/i,
           use: [require.resolve('parcel-codegen-loader')],

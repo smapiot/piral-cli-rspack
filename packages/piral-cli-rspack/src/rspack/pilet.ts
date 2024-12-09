@@ -5,12 +5,13 @@ import {
   DefinePlugin,
   LightningCssMinimizerRspackPlugin,
   SwcJsMinimizerRspackPlugin,
+  CssExtractRspackPlugin,
 } from '@rspack/core';
 import { runRspack } from './bundler-run';
-import { getRules, getPlugins, extensions, getVariables, DefaultConfiguration, getDefineVariables } from './common';
+import { getRules, extensions, getVariables, DefaultConfiguration, getDefineVariables } from './common';
+import { piletConfigEnhancer, piletCss } from '../library';
 import { defaultRspackConfig } from '../constants';
 import { extendConfig } from '../helpers';
-import { piletConfigEnhancer } from '../library';
 
 async function getConfig(
   template: string,
@@ -68,7 +69,18 @@ async function getConfig(
       },
 
       module: {
-        rules: getRules(),
+        rules: getRules([
+          {
+            test: /\.s[ac]ss$/i,
+            use: [CssExtractRspackPlugin.loader, require.resolve('sass-loader')],
+            type: 'javascript/auto',
+          },
+          {
+            test: /\.css$/i,
+            use: [CssExtractRspackPlugin.loader, require.resolve('css-loader')],
+            type: 'javascript/auto',
+          },
+        ]),
       },
 
       optimization: {
@@ -89,21 +101,22 @@ async function getConfig(
         ],
       },
 
-      plugins: getPlugins(
-        [
-          new DefinePlugin(
-            getDefineVariables({
-              ...getVariables(),
-              NODE_ENV: environment,
-              BUILD_TIME: new Date().toDateString(),
-              BUILD_TIME_FULL: new Date().toISOString(),
-              BUILD_PCKG_VERSION: version,
-              BUILD_PCKG_NAME: name,
-            }),
-          ),
-        ],
-        entry,
-      ),
+      plugins: [
+        new CssExtractRspackPlugin({
+          filename: piletCss,
+          chunkFilename: '[id].[chunkhash:6].css',
+        }),
+        new DefinePlugin(
+          getDefineVariables({
+            ...getVariables(),
+            NODE_ENV: environment,
+            BUILD_TIME: new Date().toDateString(),
+            BUILD_TIME_FULL: new Date().toISOString(),
+            BUILD_PCKG_VERSION: version,
+            BUILD_PCKG_NAME: name,
+          }),
+        ),
+      ],
     },
     enhance,
   ];
