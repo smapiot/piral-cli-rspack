@@ -36,24 +36,22 @@
     "url": "https://github.com/smapiot/piral-cli-rspack/issues"
   },
   "scripts": {
-    "build": "tsc",
-    "test": "echo \"Error: run tests from root\" && exit 1"
+    "build": "tsc"
   },
   "devDependencies": {
-    "@types/cheerio": "^0.22.21",
-    "@types/node": "^16.0.0",
-    "@types/yargs": "^15.0.4",
-    "piral-cli": "^1.0.1",
+    "@types/node": "^16",
+    "@types/yargs": "^17",
+    "piral-cli": "1.7.3",
     "typescript": "^5"
   },
   "dependencies": {
     "@rspack/core": "^1.1.5",
     "ansi-html-community": "0.0.8",
-    "cheerio": "^1.0.0",
+    "cheerio": "1.0.0",
     "css-loader": "^7.1.2",
     "express": "^4.20.0",
     "html-entities": "^1.2.0",
-    "parcel-codegen-loader": "^1.0.1",
+    "parcel-codegen-loader": "^2",
     "sass": "^1.82.0",
     "sass-loader": "^16.0.3",
     "systemjs-webpack-interop": "^2.3.7",
