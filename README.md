@@ -26,6 +26,7 @@ The `piral-cli` plugin for using `rspack` as bundler.
     - [x] v0 format
     - [x] v1 format
     - [x] v2 format
+    - [x] v3 format
     - [x] tsconfig changes
     - [x] Building
     - [x] Debugging
