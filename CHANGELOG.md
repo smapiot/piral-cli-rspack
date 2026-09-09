@@ -1,6 +1,6 @@
 # Changelog
 
-## 1.2.1 (tbd)
+## 1.2.1 (September 9, 2026)
 
 - Fixed building of distributed dependencies (importmap) for v2 pilets
 
