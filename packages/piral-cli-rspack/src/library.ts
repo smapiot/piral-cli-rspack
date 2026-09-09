@@ -10,10 +10,10 @@ function getDependencies(importmap: Array<SharedDependency>, compilerOptions: Co
   const dependencies = {};
   const { entry, externals } = compilerOptions;
 
-  if (typeof entry === 'object' && entry && Array.isArray(externals) && typeof externals[0] === 'object') {
+  if (typeof entry === 'object' && entry && externals && typeof externals === 'object') {
     for (const dep of importmap) {
       dependencies[dep.id] = dep.ref;
-      externals[0][dep.name] = dep.requireId;
+      externals[dep.name] = dep.requireId;
 
       if (dep.type === 'local') {
         entry[dep.ref.replace(/\.js$/, '')] = dep.entry;
